@@ -1,0 +1,20 @@
+# NetCat
+
+CTF: PicoCTF 2018. 
+Category: General Skills
+Points: 75
+Description: Using netcat (nc) will be a necessity throughout your adventure. Can you connect to 2018shell.picoctf.com at port 49387 
+to get the flag?
+Hint(s): (1) nc tutorial [1] 
+
+## Solution
+
+Use the shell to call the command:
+
+nc 2018shell.picoctf.com 49387 
+
+the flag is returned. 
+
+## The Full Flag
+
+picoCTF{NEtcat_iS_a_NEcESSiTy_8b6a1fbc}   
