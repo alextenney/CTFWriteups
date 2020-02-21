@@ -1,0 +1,16 @@
+# General Warmup 3
+
+CTF: PicoCTF 2018. 
+Category: General Skills
+Points: 50
+Description: What is 0x3D (base 16) in decimal (base 10).
+Hint(s): ((1) Submit your answer in our competition's flag format. For example, if you answer was '22', you would submit 
+'picoCTF{22}' as the flag.
+
+## Solution
+
+Again, we can do this by hand, or use an online tool. I used this: https://www.rapidtables.com/convert/number/hex-to-decimal.html
+
+## The Full Flag
+
+picoCTF{61}
