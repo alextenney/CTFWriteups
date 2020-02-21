@@ -1,0 +1,21 @@
+# Pipe
+
+CTF: PicoCTF 2018. 
+Category: General Skills
+Points: 110
+Description: During your adventure, you will likely encounter a situation where you need to process data that you receive over the 
+network rather than through a file. Can you find a way to save the output from this program and search for the flag? Connect with 
+2018shell.picoctf.com 44310.
+Hint(s): (1) Remember the flag format is picoCTF{XXXX} (2) Ever heard of a pipe? No not that kind of pipe... This kind [1] 
+
+## Solution
+
+When you netcat into this, it prints when seems to be a neverending series of "this isn't a flag". Instead, pipe it with that grep command:
+
+nc 2018shell.picoctf.com 44310 | grep pico 
+
+and it will return the flag.
+
+## The Full Flag
+
+picoCTF{almost_like_mario_a13e5b27}
