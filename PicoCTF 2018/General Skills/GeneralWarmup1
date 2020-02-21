@@ -1,0 +1,16 @@
+# General Warmup 1
+
+CTF: PicoCTF 2018. 
+Category: General Skills
+Points: 50
+Description: If I told you your grade was 0x41 in hexadecimal, what would it be in ASCII? 
+Hint(s): If I told you your grade was 0x41 in hexadecimal, what would it be in ASCII? 
+Author: Alexandra Tenney
+
+## Solution
+
+We know on the ASCII table that 0x41 is a capital A. 
+
+## The Full Flag
+
+picoCTF{A}
