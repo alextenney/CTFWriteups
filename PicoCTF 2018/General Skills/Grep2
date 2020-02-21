@@ -1,0 +1,18 @@
+# Grep2
+
+CTF: PicoCTF 2018. 
+Category: General Skills
+Points: 125
+Description: This one is a little bit harder. Can you find the flag in /problems/grep-2_4_06c2058761f24267033e7ca6ff9d9144/files on the 
+shell server? Remember, grep is your friend.
+Hint(s): (1) grep tutorial [1] 
+
+## Solution
+
+This is just learning extra arguments of grep, you can grep recursively using -r to search through all of those files
+
+Full Command: grep -r pico
+
+## The Full Flag
+
+picoCTF{grep_r_and_you_will_find_036bbb25}
