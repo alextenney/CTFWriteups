@@ -1,0 +1,20 @@
+# Strings
+
+CTF: PicoCTF 2018. 
+Category: General Skills
+Points: 100
+Description: Can you find the flag in this file [1]  without actually running it? You can also find the file in 
+/problems/strings_3_1dbaafa1f8f0556872cad33e16bc8dc7 on the shell server.
+Hint(s): (1) strings [2] 
+
+## Solution
+
+Cd into /problems/strings_3_1dbaafa1f8f0556872cad33e16bc8dc7 and Use the shell to call the command:
+
+strings strings | grep pico
+
+the flag is returned. 
+
+## The Full Flag
+
+picoCTF{sTrIngS_sAVeS_Time_2fbe2166}
