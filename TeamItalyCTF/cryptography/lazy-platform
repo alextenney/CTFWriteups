@@ -82,14 +82,12 @@ iv = getrandbytes(16)
 
 Which are based on the following function:
 
-
 ```
 def getrandbytes(n: int) -> bytes:
     return random.getrandbits(n * 8).to_bytes(n, "little")
 ```
 
 Python's random library function getrandbits() is not cryptographically secure, and instead uses the psuedo-random algorithm Mersenne Twister ( https://en.wikipedia.org/wiki/Mersenne_Twister). This means it will be possible for us to determine the key and IV, which will allow us to decrypt the AES that encrypts the flag. I also found the following writeup, which constructs a very similiar attack from a different CTF challenge: https://ctftime.org/writeup/29805. 
-
 
 ## Steps 
 
