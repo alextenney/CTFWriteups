@@ -1,0 +1,213 @@
+# Lazy Platform
+
+## Description
+
+I'm too lazy to implement the decryption of the ciphertexts, so I'll just give you what you need and you'll do the rest.
+
+This is a remote challenge, you can connect to the service with:
+
+nc lazy-platform.challs.teamitaly.eu 15004
+
+Author: @mattiabrandon
+
+## Materials
+
+The challenge provided the server source code, which is as follows:
+
+```python=
+from Crypto.Util.Padding import pad
+from Crypto.Cipher import AES
+import random
+import signal
+import os
+
+TIMEOUT = 300
+FLAG = os.environ.get("FLAG", "flag{test}").encode()
+
+
+def getrandbytes(n: int) -> bytes:
+    return random.getrandbits(n * 8).to_bytes(n, "little")
+
+
+def handle():
+    print("Welcome to Lazy platform! If you want to decrypt some messages, you can't do that here, you'll have to do it on your own")
+
+    while True:
+        print("Choose one of the following options")
+        print("[1] Encrypt")
+        print("[2] Decrypt")
+        print("[3] Get encrypted flag")
+        print("[4] Exit")
+        option = input("> ")
+
+        if option == "1":
+            message = input("Enter a message to encrypt: ")
+            key = getrandbytes(32)
+            iv = getrandbytes(16)
+            ciphertext = AES.new(key, AES.MODE_CBC, iv).encrypt(
+                pad(message.encode(), AES.block_size))
+            print("Ciphertext:", ciphertext.hex())
+            print("Key:", key.hex())
+            print("IV:", iv.hex())
+        elif option == "2":
+            print("I can't do that at the moment, I'm cooking a pizza")
+        elif option == "3":
+            key = getrandbytes(32)
+            iv = getrandbytes(16)
+            ciphertext = AES.new(key, AES.MODE_CBC, iv).encrypt(
+                pad(FLAG, AES.block_size))
+            print("Ciphertext:", ciphertext.hex())
+        elif option == "4":
+            print("Bye bye!\n")
+            break
+        else:
+            print("Invalid option")
+        print()
+
+
+if __name__ == "__main__":
+    signal.alarm(TIMEOUT)
+    handle()
+
+```
+
+## Attack
+
+The flag is encrypted with AES and using CBC mode. This means the encryption requires both a key and IV. We are luckily, given the code for encryption (with important variables, like the flag, redacted). Those two encryption variables are generated as follows:
+
+```
+key = getrandbytes(32)
+iv = getrandbytes(16)
+```
+
+Which are based on the following function:
+
+
+```
+def getrandbytes(n: int) -> bytes:
+    return random.getrandbits(n * 8).to_bytes(n, "little")
+```
+
+Python's random library function getrandbits() is not cryptographically secure, and instead uses the psuedo-random algorithm Mersenne Twister ( https://en.wikipedia.org/wiki/Mersenne_Twister). This means it will be possible for us to determine the key and IV, which will allow us to decrypt the AES that encrypts the flag. I also found the following writeup, which constructs a very similiar attack from a different CTF challenge: https://ctftime.org/writeup/29805. 
+
+
+## Steps 
+
+Note: throughout the exploit script, I am using a netcat python module to connect to the game server rather than python sockets. This just means a lot less code for me. :) Work smarter not harder.
+
+The source code of the challenge also shows us that both the IV and Key will be printed each time we encrypt something. 
+
+```python
+ if option == "1":
+            message = input("Enter a message to encrypt: ")
+            key = getrandbytes(32)
+            iv = getrandbytes(16)
+            ciphertext = AES.new(key, AES.MODE_CBC, iv).encrypt(
+                pad(message.encode(), AES.block_size))
+            print("Ciphertext:", ciphertext.hex())
+            print("Key:", key.hex())
+            print("IV:", iv.hex())
+```
+
+This means we can encrypt a lot of arbitrary strings in order to gather enough information about the PRNG algorithm so our local machine can "catch up" to the servers PRNG algorithm. There are a couple of online tools to do this, but I personally used this one (https://github.com/kmyk/mersenne-twister-predictor) because it can be used as a python module inside a larger script. This largely follows the similiar write up I linked above. This script specifically requires the preceding 624 generated numbers, and my script likely sends more than that, for redundency. 
+
+```python
+for i in range(312):
+    for i in range(6):
+        nc.recvline()
+    nc.send(b"1\n")
+    nc.recv(100)
+    nc.send(b"test\n")
+    nc.recvline()
+
+    #incredibly, this works, because python roolz
+    key = nc.recvline()[5:-1]
+    b_key = binascii.unhexlify(key)
+    int_key = int.from_bytes(b_key, "little")
+
+    iv = nc.recvline()[4:-1]
+    b_iv = binascii.unhexlify(iv)
+    int_iv = int.from_bytes(b_iv, "little")
+
+    predictor.setrandbits(int_key, 256)
+    predictor.setrandbits(int_iv, 128)
+```
+
+Once the local machine catches up to the servers, we can then pseudo-randomly generate the next IV and Key, using the same library. When we call for the server to encrypt the flag (our goal), it will use the same IV and key we just generated locally, since they are next in the psuedo-random sequence.
+
+```python
+for i in range(6):
+    nc.recvline()
+nc.send(b"3\n")
+flag = nc.recvline()[14:-1]
+b_flag = binascii.unhexlify(flag)
+
+new_key = getrandbytes(32)
+new_iv = getrandbytes(16)
+```
+
+Now that we have the flag ciphertext, and the key and IV, we can decrypt with the AES python library, and reveal the plaintext flag.
+
+```python
+plaintext = AES.new(new_key, AES.MODE_CBC, new_iv).decrypt(b_flag)
+```
+
+## Exploit Script
+
+```python=
+
+import random
+from Crypto.Cipher import AES
+from mt19937predictor import MT19937Predictor
+from nclib import Netcat
+import binascii
+
+# credit: https://github.com/JuliaPoo/Collection-of-CTF-Writeups/blob/master/RARCTF-2021/randompad/sol/sol.sage#L67
+
+# taken from the given program code
+def getrandbytes(n: int) -> bytes:
+    return predictor.getrandbits(n * 8).to_bytes(n, "little")
+
+predictor = MT19937Predictor()
+
+nc = Netcat(("lazy-platform.challs.teamitaly.eu", 15004))
+
+for i in range(312):
+    for i in range(6):
+        nc.recvline()
+    nc.send(b"1\n")
+    nc.recv(100)
+    nc.send(b"test\n")
+    nc.recvline()
+
+    #incredibly, this works, because python roolz
+    key = nc.recvline()[5:-1]
+    b_key = binascii.unhexlify(key)
+    int_key = int.from_bytes(b_key, "little")
+
+    iv = nc.recvline()[4:-1]
+    b_iv = binascii.unhexlify(iv)
+    int_iv = int.from_bytes(b_iv, "little")
+
+    predictor.setrandbits(int_key, 256)
+    predictor.setrandbits(int_iv, 128)
+    
+
+# get enc flag
+
+for i in range(6):
+    nc.recvline()
+nc.send(b"3\n")
+flag = nc.recvline()[14:-1]
+b_flag = binascii.unhexlify(flag)
+
+nc.send(b"4\n")
+
+## decreypt flag
+
+new_key = getrandbytes(32)
+new_iv = getrandbytes(16)
+
+plaintext = AES.new(new_key, AES.MODE_CBC, new_iv).decrypt(b_flag)
+print(plaintext.decode('utf-8'))
+```
