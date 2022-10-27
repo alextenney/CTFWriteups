@@ -1,0 +1,54 @@
+# Cult Meeting
+
+Category: Reversing
+Difficulty: Easy
+
+# Description
+
+After months of research, you're ready to attempt to infiltrate the meeting of a shadowy cult. Unfortunately, it looks like they've changed their password!
+
+# Solve
+
+We are given an Elf Binary.
+
+```
+[alex@alex-manjaro rev_cult_meeting]$ file meeting 
+meeting: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=72d8b06e4ca750d5c24395d3349c3121b9b95283, for GNU/Linux 3.2.0, not stripped
+```
+
+And when we run the binary, it asks for a password. Intially before attempted to decompile, and actually reverse the binary, I run strings, to see if it
+is possible that the password is stored as an unobfiscated string. 
+
+```
+[alex@alex-manjaro rev_cult_meeting]$ strings meeting 
+/lib64/ld-linux-x86-64.so.2
+mgUa
+puts
+stdin
+fgets
+stdout
+system
+fwrite
+strchr
+__cxa_finalize
+setvbuf
+strcmp
+__libc_start_main
+libc.so.6
+GLIBC_2.2.5
+_ITM_deregisterTMCloneTable
+__gmon_start__
+_ITM_registerTMCloneTable
+u/UH
+[]A\A]A^A_
+[3mYou knock on the door and a panel slides back
+[3m A hooded figure looks out at you
+"What is the password for this week's meeting?" 
+sup3r_s3cr3t_p455w0rd_f0r_u!
+```
+
+And it seems like an unobfiscated string is exactly what we have here! Pass that in as the password, and reveal the flag.
+
+## Flag
+
+HTB{1nf1ltr4t1ng_4_cul7_0f_str1ng5}
