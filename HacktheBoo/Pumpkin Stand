@@ -1,0 +1,35 @@
+# Pumpkin Stand
+
+Category: PWN
+Difficulty: Easy
+
+## Description
+
+This time of the year, we host our big festival and the one who craves the pumpkin faster and make it as scary as possible, gets an amazing prize! Be fast and try to crave this hard pumpkin!
+
+## Solve
+
+Whenever I see an easy pwn challenge with some kind of "buy" function, I usually think integer overflow.
+
+```
+Current pumpcoins: [1337]
+
+Items: 
+
+1. Shovel  (1337 p.c.)
+2. Laser   (9999 p.c.)
+
+>> 2
+
+How many do you want?
+
+>> 9000
+
+Congratulations, here is the code to get your laser:
+
+HTB{1nt3g3R_0v3rfl0w_101_0r_0v3R_9000!}
+```
+
+## Flag
+
+HTB{1nt3g3R_0v3rfl0w_101_0r_0v3R_9000!}
