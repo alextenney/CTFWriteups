@@ -69,7 +69,7 @@ Specifically we are interested in the following line: `echo 'socat TCP:192.168.1
 
 If we reverse the base64, and decode that base64 the flag is revealed. 
 
-![](image.png)
+![](Screenshot_2022-10-27_13-04-52.png)
 
 ## Flag
 
