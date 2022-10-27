@@ -50,7 +50,7 @@ print (hex(m))
 
 Rather than fight with python type conversion, I used cyberchef to decrypt m from hex back to Ascii.
 
-![](image.png)
+![](Screenshot_2022-10-27_12-38-38.png)
 
 ## Flag
 
